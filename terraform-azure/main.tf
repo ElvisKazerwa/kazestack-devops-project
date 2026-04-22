@@ -84,12 +84,12 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size             = var.node_vm_size
     os_disk_size_gb     = 128
     type                = "VirtualMachineScaleSets"
-    availability_zones  = ["1", "2", "3"]
+    zones               = ["1", "2", "3"]
     enable_auto_scaling = true
     min_count           = var.min_node_count
     max_count           = var.max_node_count
     vnet_subnet_id      = azurerm_subnet.aks.id
-    
+
     tags = local.tags
   }
 
@@ -99,30 +99,16 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   network_profile {
-    network_plugin     = "azure"
-    network_policy     = "azure"
-    dns_service_ip     = "10.0.0.10"
-    service_cidr       = "10.0.0.0/16"
-    load_balancer_sku  = "standard"
-    docker_bridge_cidr = "172.17.0.1/16"
+    network_plugin    = "azure"
+    network_policy    = "azure"
+    dns_service_ip    = "10.0.0.10"
+    service_cidr      = "10.0.0.0/16"
+    load_balancer_sku = "standard"
   }
-
-  api_server_authorized_ip_ranges = []
 
   azure_active_directory_role_based_access_control {
-    managed                = true
     azure_rbac_enabled     = true
     admin_group_object_ids = []
-  }
-
-  addon_profile {
-    http_application_routing {
-      enabled = false
-    }
-
-    kube_dashboard {
-      enabled = true
-    }
   }
 
   depends_on = [
@@ -142,9 +128,9 @@ resource "azurerm_container_registry" "acr" {
 
 # Role assignment for AKS to pull images from ACR
 resource "azurerm_role_assignment" "aks_acr_pull" {
-  scope              = azurerm_container_registry.acr.id
+  scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id       = azurerm_user_assigned_identity.aks.principal_id
+  principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
 # Log Analytics Workspace (for monitoring)
@@ -171,9 +157,9 @@ resource "azurerm_application_insights" "ai" {
 
 # Diagnostic Settings for AKS
 resource "azurerm_monitor_diagnostic_setting" "aks" {
-  count              = var.enable_monitoring ? 1 : 0
-  name               = "${local.base_name}-aks-diag"
-  target_resource_id = azurerm_kubernetes_cluster.aks.id
+  count                      = var.enable_monitoring ? 1 : 0
+  name                       = "${local.base_name}-aks-diag"
+  target_resource_id         = azurerm_kubernetes_cluster.aks.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law[0].id
 
   enabled_log {

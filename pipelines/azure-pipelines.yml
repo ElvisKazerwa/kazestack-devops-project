@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://aka.ms/azure-pipelines.json
+
+trigger:
+  branches:
+    include:
+      - master
+      - develop
+      - features/*
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  dockerRegistryServiceConnection: "your-acr-service-connection" # must be Service Connection name
+  imageRepository: "kazestack-devops-project"
+  containerRegistry: "your-registry.azurecr.io"
+  dockerfilePath: "Dockerfile"
+
+stages:
+  # =========================
+  # BUILD STAGE
+  # =========================
+  - stage: Build
+    displayName: Build and Push Image
+    jobs:
+      - job: BuildImage
+        displayName: Build Docker Image
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            displayName: Build and push image to ACR
+            inputs:
+              command: buildAndPush
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              containerRegistry: $(dockerRegistryServiceConnection)
+              tags: |
+                $(Build.BuildId)
+                latest
+
+  # =========================
+  # DEPLOY STAGE
+  # =========================
+  - stage: Deploy
+    displayName: Deploy to AKS
+    dependsOn: Build
+    condition: succeeded()
+
+    jobs:
+      - deployment: DeployToAKS
+        displayName: Deploy to Azure Kubernetes Service
+        environment: production
+
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: KubernetesManifest@1
+                  displayName: Deploy to AKS
+                  inputs:
+                    action: deploy
+                    kubernetesServiceConnection: "your-aks-service-connection"
+                    namespace: default
+                    manifests: |
+                      infra/k8s/overlays/prod/deployment.yaml
+                      infra/k8s/overlays/prod/service.yaml
+                    containers: |
+                      $(containerRegistry)/$(imageRepository):$(Build.BuildId)

@@ -25,7 +25,8 @@ try {
     terraform init
     terraform plan -out=tfplan
     terraform apply tfplan
-} finally {
+}
+finally {
     Pop-Location
 }
 
@@ -36,7 +37,8 @@ Push-Location $RepoRoot
 
 try {
     kubectl apply -k "infra\k8s\overlays\$Environment\"
-} finally {
+}
+finally {
     Pop-Location
 }
 

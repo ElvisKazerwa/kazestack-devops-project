@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  kazestack-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kazestack-devops-project
+    ports:
+      - "5000:5000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=True
+    volumes:
+      - ./app/src:/app
+    networks:
+      - kazestack-network
+    restart: unless-stopped
+
+networks:
+  kazestack-network:
+    driver: bridge

@@ -1,0 +1,113 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scan daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs.sarif'
+      
+      - name: Run Trivy repository scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'repo'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-repo.sarif'
+      
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-fs.sarif'
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Check for outdated packages
+        run: |
+          pip list --outdated || true
+      
+      - name: Check for known vulnerabilities
+        run: |
+          pip install safety
+          safety check --json || true
+
+  container-scanning:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image for scanning
+        run: |
+          docker build -t k8s-app:scan .
+      
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'k8s-app:scan'
+          format: 'table'
+          exit-code: '0'  # Don't fail on vulnerabilities
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint pylint-json2html
+      
+      - name: Run Pylint
+        run: |
+          pylint kazestack-devops-project/ --exit-zero --output-format=json > pylint-report.json || true
+      
+      - name: Generate Pylint report
+        run: |
+          pip install pylint-json2html
+          pylint-json2html -f jsonOnly -o pylint-report.html pylint-report.json || true
+      
+      - name: Upload Pylint report
+        uses: actions/upload-artifact@v3
+        with:
+          name: pylint-report
+          path: pylint-report.html

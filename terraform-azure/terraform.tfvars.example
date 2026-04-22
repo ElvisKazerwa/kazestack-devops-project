@@ -1,0 +1,22 @@
+environment              = "prod"
+location                = "West Europe"
+resource_group_name     = "k8s-app-prod-rg"
+project_name            = "k8sapp"
+kubernetes_version      = "1.27"
+aks_sku_tier            = "Standard"
+node_count              = 3
+min_node_count          = 3
+max_node_count          = 10
+node_vm_size            = "Standard_B2s"
+acr_sku                 = "Standard"
+acr_admin_enabled       = false
+enable_monitoring       = true
+log_retention_days      = 30
+
+common_tags = {
+  Project     = "K8s-App"
+  ManagedBy   = "Terraform"
+  CreatedBy   = "DevOps"
+  Environment = "Production"
+  CostCenter  = "Engineering"
+}

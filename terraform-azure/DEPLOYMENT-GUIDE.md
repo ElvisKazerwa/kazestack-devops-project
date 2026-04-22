@@ -46,6 +46,7 @@ Azure Subscription
 #### 1. Install Required Tools
 
 **Azure CLI**
+
 ```bash
 # macOS
 brew install azure-cli
@@ -58,6 +59,7 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 ```
 
 **Terraform**
+
 ```bash
 # macOS
 brew install terraform
@@ -72,6 +74,7 @@ choco install terraform
 ```
 
 **kubectl**
+
 ```bash
 # macOS
 brew install kubectl
@@ -86,6 +89,7 @@ choco install kubernetes-cli
 ```
 
 **Verify Installation**
+
 ```bash
 az --version
 terraform version
@@ -111,13 +115,14 @@ az account show
 ### Azure Permissions
 
 Your Azure account needs these permissions:
+
 - Subscription: Owner or Contributor role
 - Or custom role with permissions for:
-  - Microsoft.Compute/*
-  - Microsoft.Network/*
-  - Microsoft.ContainerService/*
-  - Microsoft.ContainerRegistry/*
-  - Microsoft.Resources/*
+  - Microsoft.Compute/\*
+  - Microsoft.Network/\*
+  - Microsoft.ContainerService/\*
+  - Microsoft.ContainerRegistry/\*
+  - Microsoft.Resources/\*
 
 ## Project Structure
 
@@ -190,17 +195,17 @@ managed_by  = "terraform"
 
 ### Variable Reference
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `location` | string | "eastus" | Azure region |
-| `resource_group_name` | string | "kazestack-rg" | Resource group name |
-| `cluster_name` | string | "kazestack-cluster" | AKS cluster name |
-| `vnet_address_space` | list | ["10.0.0.0/16"] | VNet address range |
-| `subnet_address_prefixes` | map | {"aks": ["10.0.1.0/24"]} | Subnet ranges |
-| `node_count` | number | 3 | Initial node count |
-| `vm_size` | string | "Standard_D2s_v3" | VM size for nodes |
-| `max_pods` | number | 30 | Max pods per node |
-| `kubernetes_version` | string | "1.27" | K8s version |
+| Variable                  | Type   | Default                  | Description         |
+| ------------------------- | ------ | ------------------------ | ------------------- |
+| `location`                | string | "eastus"                 | Azure region        |
+| `resource_group_name`     | string | "kazestack-rg"           | Resource group name |
+| `cluster_name`            | string | "kazestack-cluster"      | AKS cluster name    |
+| `vnet_address_space`      | list   | ["10.0.0.0/16"]          | VNet address range  |
+| `subnet_address_prefixes` | map    | {"aks": ["10.0.1.0/24"]} | Subnet ranges       |
+| `node_count`              | number | 3                        | Initial node count  |
+| `vm_size`                 | string | "Standard_D2s_v3"        | VM size for nodes   |
+| `max_pods`                | number | 30                       | Max pods per node   |
+| `kubernetes_version`      | string | "1.27"                   | K8s version         |
 
 ### Supported VM Sizes
 
@@ -293,6 +298,7 @@ kubectl get nodes
 ### Step 1: Install Required Components
 
 **Metrics Server (for HPA)**
+
 ```bash
 # Install metrics-server for Horizontal Pod Autoscaling
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
@@ -302,6 +308,7 @@ kubectl get deployment metrics-server -n kube-system
 ```
 
 **NGINX Ingress Controller**
+
 ```bash
 # Add Helm repository
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -320,6 +327,7 @@ kubectl get svc -n ingress-nginx
 ```
 
 **Cert-Manager (for TLS Certificates)**
+
 ```bash
 # Add Helm repository
 helm repo add jetstack https://charts.jetstack.io
@@ -349,7 +357,7 @@ kubectl get all -n production
 kubectl get hpa -n production
 
 # Check logs
-kubectl logs -n production deployment/k8s-app
+kubectl logs -n production deployment/kazestack
 ```
 
 ### Step 3: Configure Ingress (Optional)
@@ -513,6 +521,7 @@ kubectl describe node <node-name>
 ### Cost Reduction Tips
 
 1. **Use Spot Instances**
+
    ```hcl
    vm_priority = "Spot"  # Cheaper but interruptible
    ```

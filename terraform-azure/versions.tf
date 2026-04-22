@@ -24,13 +24,10 @@ terraform {
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_os_disk_on_deletion            = true
-      graceful_shutdown                     = false
-      skip_shutdown_and_force_delete_on_destroy = false
+      delete_os_disk_on_deletion       = true
+      skip_shutdown_and_force_delete = false
     }
   }
-  
-  skip_provider_registration = false
 }
 
 provider "kubernetes" {

@@ -18,14 +18,14 @@ variable "location" {
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-  default     = "k8s-app-rg"
+  default     = "kazestack-rg"
 }
 
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "k8sapp"
-  
+  default     = "kazestack"
+
   validation {
     condition     = length(var.project_name) <= 10 && can(regex("^[a-z0-9]+$", var.project_name))
     error_message = "Project name must be lowercase alphanumeric and max 10 characters."
@@ -36,7 +36,7 @@ variable "common_tags" {
   description = "Common tags applied to all resources"
   type        = map(string)
   default = {
-    Project     = "K8s-App"
+    Project     = "Kazestack"
     ManagedBy   = "Terraform"
     CreatedBy   = "DevOps"
     Environment = "Production"

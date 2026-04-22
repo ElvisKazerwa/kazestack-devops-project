@@ -10,10 +10,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - k8s-app.example.com
+    - kazestack.com
     secretName: k8s-app-tls
   rules:
-  - host: k8s-app.example.com
+  - host: kazestack.com
     http:
       paths:
       - path: /

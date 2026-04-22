@@ -1,6 +1,6 @@
 # Terraform - Azure Infrastructure as Code
 
-Production-grade Terraform configuration for deploying K8s-App to Azure Kubernetes Service (AKS).
+Production-grade Terraform configuration for deploying Kazestack to Azure Kubernetes Service (AKS).
 
 ## Architecture
 
@@ -16,12 +16,14 @@ This Terraform configuration provisions:
 ## Prerequisites
 
 1. **Azure CLI** installed and configured
+
    ```bash
    az login
    az account set --subscription <subscription-id>
    ```
 
 2. **Terraform** >= 1.0
+
    ```bash
    terraform version
    ```
@@ -59,8 +61,8 @@ Edit `terraform.tfvars` with your settings:
 ```hcl
 environment          = "prod"
 location             = "West Europe"
-resource_group_name  = "k8s-app-prod-rg"
-project_name         = "k8sapp"
+resource_group_name  = "kazestack-prod-rg"
+project_name         = "kazestack"
 node_count           = 3
 max_node_count       = 10
 node_vm_size         = "Standard_B2s"
@@ -68,16 +70,16 @@ node_vm_size         = "Standard_B2s"
 
 ### 2. Key Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `environment` | "prod" | Environment (dev, staging, prod) |
-| `location` | "West Europe" | Azure region |
-| `kubernetes_version` | "1.27" | Kubernetes version |
-| `node_count` | 3 | Initial node count |
-| `max_node_count` | 10 | Max nodes for autoscaling |
-| `node_vm_size` | "Standard_B2s" | VM size for nodes |
-| `acr_sku` | "Standard" | Container Registry tier |
-| `enable_monitoring` | true | Enable monitoring |
+| Variable             | Default        | Description                      |
+| -------------------- | -------------- | -------------------------------- |
+| `environment`        | "prod"         | Environment (dev, staging, prod) |
+| `location`           | "West Europe"  | Azure region                     |
+| `kubernetes_version` | "1.27"         | Kubernetes version               |
+| `node_count`         | 3              | Initial node count               |
+| `max_node_count`     | 10             | Max nodes for autoscaling        |
+| `node_vm_size`       | "Standard_B2s" | VM size for nodes                |
+| `acr_sku`            | "Standard"     | Container Registry tier          |
+| `enable_monitoring`  | true           | Enable monitoring                |
 
 ## Usage
 
@@ -120,8 +122,8 @@ terraform output ingress_public_ip
 
 ```bash
 az aks get-credentials \
-  --resource-group k8s-app-prod-rg \
-  --name k8sapp-aks \
+  --resource-group kazestack-prod-rg \
+  --name kazestack-aks \
   --admin
 ```
 
@@ -139,7 +141,7 @@ kubectl get nodes
 kubectl get namespaces
 ```
 
-### Deploy K8s-App
+### Deploy Kazestack
 
 ```bash
 cd ../k8s
@@ -173,7 +175,7 @@ backend "azurerm" {
   resource_group_name  = "terraform-state-rg"
   storage_account_name = "terraformstate"
   container_name       = "tfstate"
-  key                  = "k8s-app.tfstate"
+  key                  = "kazestack.tfstate"
 }
 ```
 
@@ -196,7 +198,7 @@ Access monitoring:
 
 ```bash
 # View AKS logs
-kubectl logs deployment/k8s-app -n production
+kubectl logs deployment/kazestack -n production
 
 # Check HPA status
 kubectl get hpa -n production
@@ -239,6 +241,7 @@ terraform destroy
 ## Security Best Practices
 
 ✅ Implemented:
+
 - Non-root container users
 - Network policies (Azure CNI)
 - RBAC with Managed Identity
@@ -252,7 +255,7 @@ terraform destroy
 
 ```bash
 # Check resource group exists
-az group show -n k8s-app-prod-rg
+az group show -n kazestack-prod-rg
 
 # Check provider registration
 az provider register --namespace Microsoft.ContainerService
@@ -315,5 +318,6 @@ GitHub Actions workflow can automate Terraform:
 ## Support
 
 For issues, check:
+
 - [Terraform Azure Provider Docs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [AKS Best Practices](https://docs.microsoft.com/en-us/azure/aks/best-practices)

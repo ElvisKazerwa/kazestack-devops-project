@@ -11,9 +11,9 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  dockerRegistryServiceConnection: "your-acr-service-connection" # must be Service Connection name
+  dockerRegistryServiceConnection: "kazestack-acr-service-connection" # must be Service Connection name
   imageRepository: "kazestack-devops-project"
-  containerRegistry: "your-registry.azurecr.io"
+  containerRegistry: "kazestackacr.azurecr.io"
   dockerfilePath: "Dockerfile"
 
 stages:
@@ -62,10 +62,7 @@ stages:
                   displayName: Deploy to AKS
                   inputs:
                     action: deploy
-                    kubernetesServiceConnection: "your-aks-service-connection"
-                    namespace: default
+                    kubernetesServiceConnection: "kazestack-aks-service-connection"
+                    namespace: production
                     manifests: |
-                      infra/k8s/overlays/prod/deployment.yaml
-                      infra/k8s/overlays/prod/service.yaml
-                    containers: |
-                      $(containerRegistry)/$(imageRepository):$(Build.BuildId)
+                      infra/k8s/overlays/prod/

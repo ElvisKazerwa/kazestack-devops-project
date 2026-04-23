@@ -26,7 +26,7 @@ jobs:
 
       # -------- FILESYSTEM SCAN --------
       - name: Run Trivy FS scan
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
           scan-ref: .
@@ -35,25 +35,25 @@ jobs:
 
       # -------- REPO SCAN --------
       - name: Run Trivy Repo scan
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: repo
           scan-ref: .
           format: sarif
           output: trivy-repo.sarif
 
-      # -------- UPLOAD SARIF (skip PRs from forks) --------
+      # -------- UPLOAD SARIF --------
       - name: Upload FS results
-        if: github.event_name != 'pull_request'
+        if: always() && github.event_name != 'pull_request'
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: k8s-app/trivy-fs.sarif
+          sarif_file: trivy-fs.sarif
 
       - name: Upload Repo results
-        if: github.event_name != 'pull_request'
+        if: always() && github.event_name != 'pull_request'
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: k8s-app/trivy-repo.sarif
+          sarif_file: trivy-repo.sarif
 
   dependency-check:
     runs-on: ubuntu-latest
@@ -80,10 +80,10 @@ jobs:
       - name: Check outdated packages
         run: pip list --outdated || true
 
-      - name: Security check (Safety)
+      - name: Security check (pip-audit)
         run: |
-          pip install safety
-          safety check --full-report || true
+          pip install pip-audit
+          pip-audit || true
 
   container-scan:
     runs-on: ubuntu-latest
@@ -95,12 +95,20 @@ jobs:
       - name: Build Docker image
         run: docker build -t k8s-app:scan ./k8s-app
 
+      # -------- TRIVY IMAGE SCAN --------
       - name: Scan Docker image
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: k8s-app:scan
-          format: table
+          format: sarif
+          output: trivy-image.sarif
           exit-code: 0
+
+      - name: Upload image scan results
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
 
   code-quality:
     runs-on: ubuntu-latest

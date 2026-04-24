@@ -25,10 +25,14 @@ on:
       - .github/workflows/**
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+
+# -------------------------------------------------------
+# Python Quality
+# -------------------------------------------------------
 
   lint-and-test:
     name: Python Lint & Unit Tests
@@ -47,6 +51,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: k8s-app/requirements.txt
 
       - name: Install dependencies
         run: |
@@ -63,16 +68,16 @@ jobs:
             pytest \
             pytest-cov
 
-      - name: Check formatting
+      - name: Black format check
         run: black --check .
 
-      - name: Run flake8
+      - name: Flake8 lint
         run: flake8 . --max-line-length=100
 
-      - name: Run pylint
-        run: pylint .
+      - name: Pylint
+        run: pylint app.py
 
-      - name: Run unit tests
+      - name: Run tests
         run: pytest ../tests -v --cov=. --cov-report=xml
 
       - name: Upload coverage
@@ -82,6 +87,10 @@ jobs:
           flags: unittests
           fail_ci_if_error: false
 
+
+# -------------------------------------------------------
+# Terraform Validation
+# -------------------------------------------------------
 
   terraform-validate:
     name: Terraform Validate
@@ -109,6 +118,10 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+
+# -------------------------------------------------------
+# Docker Lint
+# -------------------------------------------------------
 
   docker-lint:
     name: Dockerfile Lint

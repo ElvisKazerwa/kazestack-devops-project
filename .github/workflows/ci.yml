@@ -1,60 +1,99 @@
-name: CI - Lint & Test
+name: CI - Lint, Test, Validate
 
 on:
   push:
-    branches: [ develop ]
+    branches:
+      - master
+      - develop
+      - feature/**
+      - bugfix/**
+      - hotfix/**
+    paths:
+      - k8s-app/**
+      - terraform-azure/**
+      - Dockerfile
+      - .github/workflows/**
+
   pull_request:
-    branches: [ develop ]
+    branches:
+      - master
+      - develop
+    paths:
+      - k8s-app/**
+      - terraform-azure/**
+      - Dockerfile
+      - .github/workflows/**
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+
   lint-and-test:
+    name: Python Lint & Unit Tests
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: k8s-app   # 👈 IMPORTANT ( app lives here)
+        working-directory: k8s-app
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
           cache: pip
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install black flake8 pylint pytest pytest-cov
 
-      - name: Check formatting with Black
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          pip install \
+            black \
+            flake8 \
+            pylint \
+            pytest \
+            pytest-cov
+
+      - name: Check formatting
         run: black --check .
 
-      - name: Lint with Flake8
+      - name: Run flake8
         run: flake8 . --max-line-length=100
 
-      - name: Lint with Pylint
-        run: pylint . || true   # 👈 prevent pipeline noise unless you want strict fail
+      - name: Run pylint
+        run: pylint .
 
       - name: Run unit tests
-        run: pytest ../tests -v --cov=. --cov-report=xml || true
+        run: |
+          pytest ../tests \
+            -v \
+            --cov=. \
+            --cov-report=xml
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
           files: k8s-app/coverage.xml
           flags: unittests
           fail_ci_if_error: false
 
+
   terraform-validate:
+    name: Terraform Validate
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: terraform-azure   
+        working-directory: terraform-azure
 
     steps:
       - name: Checkout
@@ -63,7 +102,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0
+          terraform_version: 1.6.6
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
@@ -74,20 +113,22 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+
   docker-lint:
+    name: Dockerfile Lint
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Lint Dockerfile (root)
+      - name: Lint Root Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
           ignore: DL3008,DL3009
 
-      - name: Lint Dockerfile (k8s-app)
+      - name: Lint App Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: k8s-app/Dockerfile

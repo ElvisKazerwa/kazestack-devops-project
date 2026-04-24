@@ -200,7 +200,7 @@ managed_by  = "terraform"
 | `location`                | string | "eastus"                 | Azure region        |
 | `resource_group_name`     | string | "kazestack-rg"           | Resource group name |
 | `cluster_name`            | string | "kazestack-cluster"      | AKS cluster name    |
-| `vnet_address_space`      | list   | ["10.0.0.0/16"]          | VNet address range  |
+| `vnet_address_space`      | list   | ["10.1.0.0/16"]          | VNet address range  |
 | `subnet_address_prefixes` | map    | {"aks": ["10.0.1.0/24"]} | Subnet ranges       |
 | `node_count`              | number | 3                        | Initial node count  |
 | `vm_size`                 | string | "Standard_D2s_v3"        | VM size for nodes   |

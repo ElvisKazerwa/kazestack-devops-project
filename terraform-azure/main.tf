@@ -70,13 +70,15 @@ resource "azurerm_user_assigned_identity" "aks" {
 
 # AKS Cluster
 resource "azurerm_kubernetes_cluster" "aks" {
-  name                = "${local.base_name}-aks"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  dns_prefix          = local.base_name
-  kubernetes_version  = var.kubernetes_version
-  sku_tier            = var.aks_sku_tier
-  tags                = local.tags
+  name                      = "${local.base_name}-aks"
+  location                  = azurerm_resource_group.rg.location
+  resource_group_name       = azurerm_resource_group.rg.name
+  dns_prefix                = local.base_name
+  kubernetes_version        = var.kubernetes_version
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
+  sku_tier                  = var.aks_sku_tier
+  tags                      = local.tags
 
   default_node_pool {
     name                = "default"
@@ -84,7 +86,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size             = var.node_vm_size
     os_disk_size_gb     = 128
     type                = "VirtualMachineScaleSets"
-    zones               = ["1", "2", "3"]
     enable_auto_scaling = true
     min_count           = var.min_node_count
     max_count           = var.max_node_count
@@ -101,15 +102,11 @@ resource "azurerm_kubernetes_cluster" "aks" {
   network_profile {
     network_plugin    = "azure"
     network_policy    = "azure"
-    dns_service_ip    = "10.0.0.10"
-    service_cidr      = "10.0.0.0/16"
+    dns_service_ip    = "10.2.0.10"
+    service_cidr      = "10.2.0.0/16"
     load_balancer_sku = "standard"
   }
 
-  azure_active_directory_role_based_access_control {
-    azure_rbac_enabled     = true
-    admin_group_object_ids = []
-  }
 
   depends_on = [
     azurerm_subnet_network_security_group_association.aks
@@ -193,14 +190,16 @@ resource "azurerm_public_ip" "ingress" {
   tags                = local.tags
 }
 
-# Kubernetes Namespace
-resource "kubernetes_namespace" "production" {
-  metadata {
-    name = local.k8s_namespace
-    labels = {
-      name = local.k8s_namespace
-    }
-  }
-
-  depends_on = [azurerm_kubernetes_cluster.aks]
-}
+# resource "kubernetes_namespace" "production" {
+#   metadata {
+#     name = local.k8s_namespace
+#
+#     labels = {
+#       name = local.k8s_namespace
+#     }
+#   }
+#
+#   depends_on = [
+#     azurerm_kubernetes_cluster.aks
+#   ]
+# }

@@ -1,21 +1,20 @@
 FROM python:3.11-slim
 
-# Python runtime behavior
 ENV PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONUNBUFFERED=1
+  PYTHONUNBUFFERED=1 \
+  PORT=5000
 
 WORKDIR /app
 
-# Install dependencies first (cache-friendly)
-COPY requirements.txt .
+# Install dependencies first
+COPY src/requirements.txt .
 
-RUN pip install --upgrade pip && \
-  pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+  python -m pip install --no-cache-dir -r requirements.txt
 
-# Copy application
-COPY . .
+# Copy application source
+COPY src/ .
 
-# Run as non-root
 USER nobody
 
 EXPOSE 5000

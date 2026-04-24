@@ -1,13 +1,6 @@
 """
-Production-ready Flask application with Prometheus metrics, structured logging,
-health checks, and Kubernetes readiness/liveness probes.
-
-Features:
-- Structured JSON logging
-- Prometheus metrics
-- Kubernetes health probes
-- Request telemetry
-- Global error handling
+Production-ready Flask application with Prometheus metrics,
+structured logging, health checks, and Kubernetes probes.
 """
 
 import json
@@ -20,19 +13,19 @@ from datetime import datetime
 from flask import Flask, jsonify, request
 from prometheus_client import Counter, Gauge, Histogram, generate_latest
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Flask App
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 app = Flask(__name__)
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Structured Logging
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 class JSONFormatter(logging.Formatter):
-    """JSON log formatter for structured logging."""
+    """JSON formatter for structured logs."""
 
     def format(self, record):
         log_data = {
@@ -63,9 +56,9 @@ logger.handlers.clear()
 logger.addHandler(log_handler)
 logger.setLevel(logging.INFO)
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Prometheus Metrics
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 REQUEST_COUNT = Counter(
     "app_requests_total",
@@ -77,7 +70,19 @@ REQUEST_DURATION = Histogram(
     "app_request_duration_seconds",
     "HTTP request latency in seconds",
     ["method", "endpoint"],
-    buckets=(0.005,0.01,0.025,0.05,0.075,0.1,0.25,0.5,0.75,1.0,2.5,5.0,
+    buckets=(
+        0.005,
+        0.01,
+        0.025,
+        0.05,
+        0.075,
+        0.1,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        2.5,
+        5.0,
     ),
 )
 
@@ -98,14 +103,14 @@ ACTIVE_CONNECTIONS = Gauge(
     "Current active connections",
 )
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Request Hooks
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @app.before_request
 def before_request():
-    """Track request start and active connections."""
+    """Track request timing and active connections."""
     request.start_time = time.time()
     request.request_id = request.headers.get(
         "X-Request-ID",
@@ -149,14 +154,14 @@ def after_request(response):
     return response
 
 
-# =============================================================================
-# Error Handling
-# =============================================================================
+# -----------------------------------------------------------------------------
+# Global Error Handler
+# -----------------------------------------------------------------------------
 
 
 @app.errorhandler(Exception)
 def handle_error(error):
-    """Global exception handler."""
+    """Handle unexpected exceptions."""
     endpoint = request.endpoint or "unknown"
     error_type = type(error).__name__
 
@@ -188,9 +193,9 @@ def handle_error(error):
     )
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # API Endpoints
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @app.route("/", methods=["GET"])
@@ -249,9 +254,9 @@ def info():
     )
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Kubernetes Probes
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @app.route("/health", methods=["GET"])
@@ -299,25 +304,23 @@ def readiness_probe():
         )
 
 
-# =============================================================================
-# Prometheus Metrics Endpoint
-# =============================================================================
+# -----------------------------------------------------------------------------
+# Metrics Endpoint
+# -----------------------------------------------------------------------------
 
 
 @app.route("/metrics", methods=["GET"])
 def metrics():
-    return generate_latest(), 200, {
-        "Content-Type": "text/plain; charset=utf-8"
-    }
+    return generate_latest(), 200, {"Content-Type": "text/plain; charset=utf-8"}
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Startup
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 def initialize_app():
-    """Initialize app metadata."""
+    """Initialize application metadata."""
     environment = os.environ.get("FLASK_ENV", "production")
     version = "1.0.0"
 
@@ -337,9 +340,9 @@ def initialize_app():
     )
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entrypoint
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
     initialize_app()

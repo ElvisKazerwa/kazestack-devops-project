@@ -1,23 +1,24 @@
 FROM python:3.11-slim
 
-# Python runtime behavior
 ENV PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONUNBUFFERED=1
+  PYTHONUNBUFFERED=1 \
+  PORT=5000
 
 WORKDIR /app
 
-# Install dependencies first (cache-friendly)
+# Copy and install dependencies first (better layer caching)
 COPY requirements.txt .
 
-RUN pip install --upgrade pip && \
-  pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip && \
+  python -m pip install --no-cache-dir -r requirements.txt
 
-# Copy application
-COPY . .
+# Copy application code
+COPY src/ .
 
-# Run as non-root
+# Drop privileges
 USER nobody
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+# Production WSGI server
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]

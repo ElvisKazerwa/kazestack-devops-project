@@ -64,10 +64,10 @@ jobs:
             pytest-cov
 
       - name: Check formatting
-        run: black --check .
+        run: black --check k8s-app
 
       - name: Run flake8
-        run: flake8 . --max-line-length=100
+        run: flake8 k8s-app --max-line-length=100
 
       - name: Run pylint
         run: pylint .

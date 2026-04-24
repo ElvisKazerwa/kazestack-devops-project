@@ -47,7 +47,7 @@ variable "common_tags" {
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.27"
+  default     = "1.34.4"
 }
 
 variable "aks_sku_tier" {
@@ -64,7 +64,7 @@ variable "aks_sku_tier" {
 variable "node_count" {
   description = "Initial number of nodes in the AKS cluster"
   type        = number
-  default     = 3
+  default     = 1
 
   validation {
     condition     = var.node_count >= 1 && var.node_count <= 100
@@ -75,19 +75,19 @@ variable "node_count" {
 variable "min_node_count" {
   description = "Minimum number of nodes for autoscaling"
   type        = number
-  default     = 3
+  default     = 1
 }
 
 variable "max_node_count" {
   description = "Maximum number of nodes for autoscaling"
   type        = number
-  default     = 10
+  default     = 2
 }
 
 variable "node_vm_size" {
   description = "VM size for AKS nodes"
   type        = string
-  default     = "Standard_B2s"
+  default     = "Standard_D2ads_v7"
 }
 
 # Network Configuration
